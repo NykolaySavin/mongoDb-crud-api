@@ -1,7 +1,8 @@
 import config from '../enviroment';
 import S3Service from './s3';
-const slugify = require('slugify');
-const Article = require('../db/models/article');
+import slugify from 'slugify';
+import Article from '../db/models/article';
+
 const s3 = new S3Service();
 const mapFileToImage=(body,file,index)=>{
     return {
@@ -21,7 +22,6 @@ const mapPageToContent=(images,page,index)=>{
 }
 module.exports = {
 
-    // Get all articles
     async getArticles(req, res, next) {
         try {
             const articles = await Article.find();
@@ -32,7 +32,6 @@ module.exports = {
         }
     },
 
-    // Create new article
     async createArticle(req, res, next) {
         try {
             const { title, body } = req.body;
@@ -52,7 +51,6 @@ module.exports = {
         }
     },
 
-    // Update an article
     async updateArticle(req, res, next) {
         try {
             const { title, body } = req.body;
@@ -84,7 +82,6 @@ module.exports = {
         }
     },
 
-    // Delete an article
     async deleteArticle(req, res, next) {
         try {
             const article = await Article.findOne({_id: req.params.id});

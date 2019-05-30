@@ -7,4 +7,5 @@ export default {
     AWS_SECRET_ACCESS_KEY:process.env. AWS_SECRET_ACCESS_KEY,
         AWS_ACCESS_KEY_ID:process.env.AWS_ACCESS_KEY_ID,
     bucket_name:process.env.BUCKET_NAME,
+    region:'us-east-1'
 }

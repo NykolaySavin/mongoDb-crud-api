@@ -1,7 +1,8 @@
 import express from 'express';
 import config from './enviroment';
 import expressConfig from './config';
-const db = require('./db');
+import db from './db';
+
 db.connect(config.db_url);
 
 var app = express();
