@@ -1,10 +1,24 @@
-// Controller for all article routes
-
+import config from '../enviroment';
+import S3Service from './s3';
 const slugify = require('slugify');
-const path = require('path');
-const fs = require('fs');
 const Article = require('../db/models/article');
-
+const s3 = new S3Service();
+const mapFileToImage=(body,file,index)=>{
+    return {
+        key: file.key,
+        mimetype:file.mimetype,
+        url:file.location,
+        caption: body[index] ? body[index].image_caption : ''
+    };
+}
+const mapPageToContent=(images,page,index)=>{
+    return {
+        title: page.title,
+        text_before: page.text_before,
+        image: images[index],
+        text_after: page.text_after
+    };
+}
 module.exports = {
 
     // Get all articles
@@ -22,40 +36,8 @@ module.exports = {
     async createArticle(req, res, next) {
         try {
             const { title, body } = req.body;
-
-            let images = [];
-
-            if (req.files) {
-                req.files.forEach((file, index) => {
-                    const original = file.filename;
-                    const filename = file.filename + path.extname(file.originalname);
-                    const source = path.join('./uploads', original);
-                    const dest = path.join('./', filename);
-                    const caption = body[index] ? body[index].image_caption : '';
-
-                    // copy original to static dir
-                   fs.copyFile(source, dest, (err) => {
-                        if (err) throw err;
-                    });
-
-                    images.push({
-                        original: original,
-                        filename: filename,
-                        caption: caption
-                    });
-                });
-            }
-
-            let content = [];
-
-            body.forEach((page, index) => {
-                content.push({
-                    title: page.title,
-                    text_before: page.text_before,
-                    image: images[index],
-                    text_after: page.text_after
-                });
-            });
+            const images = req.files?req.files.map(mapFileToImage.bind(null,body)):[];
+            const content = body.map(mapPageToContent.bind(null,images));
 
             const article = new Article({
                 title: title,
@@ -80,42 +62,18 @@ module.exports = {
                 return res.status(404).send();
             }
 
-            let images = [];
-
-            if (req.files) {
-                req.files.forEach((file, index) => {
-                    const original = file.filename;
-                    const filename = file.filename + path.extname(file.originalname);
-                    const source = path.join('./uploads', original);
-                    const dest = path.join('./public/static', filename);
-                    const caption = body[index] ? body[index].image_caption : '';
-
-                    // copy original to static dir
-                    fs.copyFile(source, dest, (err) => {
-                        if (err) throw err;
-                    });
-
-                    images.push({
-                        original: original,
-                        filename: filename,
-                        caption: caption
-                    });
-                });
-            }
-
-            let content = [];
-
-            body.forEach((page, index) => {
-                content.push({
-                    title: page.title,
-                    text_before: page.text_before,
-                    image: images[index],
-                    text_after: page.text_after
-                });
-            });
-
-            //@todo: remove old images
-
+            const images = req.files?req.files.map(mapFileToImage.bind(null,body)):[];
+            const content = body.map(mapPageToContent.bind(null,images));
+            article.content.forEach(item=>{
+                if(!content.find(element=>item.image.filename==element.image.filename))
+                {
+                    var params = {
+                        Bucket: config.bucket_name,
+                        Key: item.filename
+                    };
+                   s3.deleteObject(params);
+                }
+            })
             article.title = title;
             article.content = content;
 
@@ -134,9 +92,12 @@ module.exports = {
             if (!article) {
                 return res.status(404).send();
             }
-
-            //@todo: remove all images
-
+            article.content.forEach(item=>
+                item.image.forEach(image=> s3.deleteObject({
+                    Bucket: config.bucket_name,
+                    Key: image.key
+                }))
+            )
             article.remove();
             res.send(article);
         } catch (err) {

@@ -2,11 +2,15 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const imageSchema = new Schema({
-    original: {
+    key: {
         type: String,
         required: true
     },
-    filename: {
+    mimetype: {
+        type: String,
+        required: true
+    },
+    url: {
         type: String,
         required: true
     },
