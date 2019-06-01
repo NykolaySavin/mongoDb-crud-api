@@ -20,7 +20,9 @@ var upload = multer({
   fileFilter,
   storage: multerS3({
     s3: s3,
-    bucket: config.bucket_name
+    bucket: config.bucket_name,
+      acl:"public-read",
+      contentType:multerS3.AUTO_CONTENT_TYPE
   })
 });
 export default function(router) {
