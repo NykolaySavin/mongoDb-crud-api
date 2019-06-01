@@ -36,7 +36,7 @@ module.exports = {
         try {
             const { title, body } = req.body;
             const images = req.files?req.files.map(mapFileToImage.bind(null,body)):[];
-            const content = body.map(mapPageToContent.bind(null,images));
+            const content =body? body.map(mapPageToContent.bind(null,images)):[];
 
             const article = new Article({
                 title: title,
