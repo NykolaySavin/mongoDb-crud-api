@@ -9,15 +9,8 @@ import config from "../enviroment";
 import multer from "multer";
 import multerS3 from "multer-s3";
 
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
-    cb(null, true);
-  } else {
-    cb(new Error("Invalid file type, only JPEG and PNG is allowed!"), false);
-  }
-};
+
 var upload = multer({
-  fileFilter,
   storage: multerS3({
     s3: s3,
     bucket: config.bucket_name,

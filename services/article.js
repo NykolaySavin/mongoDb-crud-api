@@ -12,6 +12,7 @@ const mapFileToImage=(body,file,index)=>{
         caption: body[index] ? body[index].image_caption : ''
     };
 }
+
 const mapPageToContent=(images,page,index)=>{
     return {
         title: page.title,
@@ -19,6 +20,30 @@ const mapPageToContent=(images,page,index)=>{
         image: images[index],
         text_after: page.text_after
     };
+}
+const mapPageToContentWithDeletion=(images,oldArticle,page)=>{
+    if(page.image_url)
+    {
+        const p = oldArticle.content.find(item=>item.image[0].url==page.image_url);
+        const image = p.image;
+        image[0].caption = page.image_caption;
+        return {
+            title: page.title,
+            text_before: page.text_before,
+            image: image,
+            text_after: page.text_after
+        };
+    }else{
+        const image =images.shift();
+        image.caption = page.image_caption;
+        return {
+            title: page.title,
+            text_before: page.text_before,
+            image: [image],
+            text_after: page.text_after
+        };
+    }
+
 }
 module.exports = {
 
@@ -55,19 +80,17 @@ module.exports = {
         try {
             const { title, body } = req.body;
             const article = await Article.findOne({_id: req.params.id});
-
             if (!article) {
                 return res.status(404).send();
             }
-
             const images = req.files?req.files.map(mapFileToImage.bind(null,body)):[];
-            const content = body.map(mapPageToContent.bind(null,images));
+            const content = body? body.map(mapPageToContentWithDeletion.bind(null,images,article)):[];
             article.content.forEach(item=>{
-                if(!content.find(element=>item.image.filename==element.image.filename))
+                if(!content.find(element=>item.image[0].key==element.image[0].key))
                 {
                     var params = {
                         Bucket: config.bucket_name,
-                        Key: item.filename
+                        Key: item.image[0].key
                     };
                    s3.deleteObject(params);
                 }
