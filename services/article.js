@@ -22,6 +22,7 @@ const mapPageToContent=(images,page,index)=>{
     };
 }
 const mapPageToContentWithDeletion=(images,oldArticle,page)=>{
+    console.dir(page)
     const image = page.image=='new'?images.shift():oldArticle.content.find(item=>item.image[0].key==page.image).image[0];
     image.caption=page.image_caption;
     return {
