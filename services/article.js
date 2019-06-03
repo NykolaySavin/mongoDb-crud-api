@@ -22,28 +22,14 @@ const mapPageToContent=(images,page,index)=>{
     };
 }
 const mapPageToContentWithDeletion=(images,oldArticle,page)=>{
-    if(page.image_url)
-    {
-        const p = oldArticle.content.find(item=>item.image[0].url==page.image_url);
-        const image = p.image;
-        image[0].caption = page.image_caption;
-        return {
-            title: page.title,
-            text_before: page.text_before,
-            image: image,
-            text_after: page.text_after
-        };
-    }else{
-        const image =images.shift();
-        image.caption = page.image_caption;
-        return {
-            title: page.title,
-            text_before: page.text_before,
-            image: [image],
-            text_after: page.text_after
-        };
-    }
-
+    const image = page.image=='new'?images.shift():oldArticle.content.find(item=>item.image[0].key==page.image.key).image[0];
+    image.caption=page.image_caption;
+    return {
+        title: page.title,
+        text_before: page.text_before,
+        image: [image],
+        text_after: page.text_after
+    };
 }
 module.exports = {
 
@@ -61,6 +47,7 @@ module.exports = {
         try {
             const { title, body } = req.body;
             const images = req.files?req.files.map(mapFileToImage.bind(null,body)):[];
+            console.dir(req.files);
             const content =body? body.map(mapPageToContent.bind(null,images)):[];
 
             const article = new Article({
