@@ -22,7 +22,7 @@ const mapPageToContent=(images,page,index)=>{
     };
 }
 const mapPageToContentWithDeletion=(images,oldArticle,page)=>{
-    const image = page.image=='new'?images.shift():oldArticle.content.find(item=>item.image[0].key==page.image.key).image[0];
+    const image = page.image=='new'?images.shift():oldArticle.content.find(item=>item.image[0].key==page.image).image[0];
     image.caption=page.image_caption;
     return {
         title: page.title,
@@ -33,6 +33,15 @@ const mapPageToContentWithDeletion=(images,oldArticle,page)=>{
 }
 module.exports = {
 
+    async findArticle(req, res, next) {
+        try {
+            const article = await Article.findOne({_id: req.params.id});
+
+            res.send(article);
+        } catch (err) {
+            next(err);
+        }
+    },
     async getArticles(req, res, next) {
         try {
             const articles = await Article.find();
@@ -42,12 +51,10 @@ module.exports = {
             next(err);
         }
     },
-
     async createArticle(req, res, next) {
         try {
             const { title, body } = req.body;
             const images = req.files?req.files.map(mapFileToImage.bind(null,body)):[];
-            console.dir(req.files);
             const content =body? body.map(mapPageToContent.bind(null,images)):[];
 
             const article = new Article({

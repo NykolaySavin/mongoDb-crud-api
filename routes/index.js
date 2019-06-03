@@ -2,7 +2,7 @@ import {
   getArticles,
   createArticle,
   updateArticle,
-  deleteArticle
+  deleteArticle,findArticle
 } from "../services/article";
 import s3 from "../awsClient";
 import config from "../enviroment";
@@ -20,6 +20,7 @@ var upload = multer({
 });
 export default function(router) {
   router.get("/api/articles", getArticles);
+    router.get("/api/articles/:id", findArticle);
   router.post("/api/articles", upload.any("body"), createArticle);
   router.put("/api/articles/:id", upload.any("body"), updateArticle);
   router.delete("/api/articles/:id", deleteArticle);
